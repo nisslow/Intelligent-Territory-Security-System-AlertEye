@@ -139,7 +139,7 @@ def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_d
         detections = sv.Detections.from_ultralytics(result)
         detections = detections[np.isin(detections.class_id,[0, 1, 2, 3, 7])]
 
-        while time_buffer and (datetime.now() - time_buffer[0]).total_seconds() > 15:
+        while time_buffer and (datetime.now() - time_buffer[0]).total_seconds() > 15:     # Duration of the recorded video
             frame_buffer.popleft()
             time_buffer.popleft()
             delay_buffer.popleft()
