@@ -33,3 +33,9 @@ This system is a complete video surveillance solution using artificial intellige
 - Supervision
 - Pygame (for sound notifications)
 - Telegram API (for sending notifications)
+
+## Configuration
+
+- Configure the directory paths for saving photos and videos in the `photos_dir` and `videos_dir` variables
+- Specify the RTSP streams of the cameras in the `streams` list
+- Download any YOLO family models from the official source. If necessary, change YOLO models or their parameters in the `models` list
