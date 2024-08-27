@@ -1,7 +1,7 @@
 import telebot
 #import AlertEye  is not necessary while using 'MultiCameras'!
 
-bot = telebot.TeleBot(tg_bot_token)
+bot = telebot.TeleBot(tg_bot_token)  # Your Telegram bot token
 is_running = True
 
 def send_new_photos(photo):
