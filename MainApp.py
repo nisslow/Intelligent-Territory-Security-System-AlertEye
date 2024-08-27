@@ -24,25 +24,25 @@ class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.error_signal.connect(self.show_error_message)
-        self.models = {
-            'yolov8n': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov8n.pt',
-            'yolov8s': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov8s.pt',
-            'yolov8m': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov8m.pt',
-            'yolov8l': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov8l.pt',
-            'yolov9c': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov9c.pt',
-            'yolov8x': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov8x.pt',
-            'yolov10n': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10n.pt',
-            'yolov10s': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10s.pt',
-            'yolov10m': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10m.pt',
-            'yolov10b': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10b.pt',
-            'yolov10l': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10l.pt',
-            'yolov10x': 'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10x.pt',
+        self.models = {              
+            'yolov8n': 'model path',  # For example D:\\PycharmProjects\\pythonProject\\yolov10\\yolov10x.pt
+            'yolov8s': 'model path',
+            'yolov8m': 'model path',
+            'yolov8l': 'model path',
+            'yolov9c': 'model path',
+            'yolov8x': 'model path',
+            'yolov10n': 'model path',
+            'yolov10s': 'model path',
+            'yolov10m': 'model path',
+            'yolov10b': 'model path',
+            'yolov10l': 'model path',
+            'yolov10x': 'model path',
         }
-        self.photos_dir = "D:\\PycharmProjects\\pythonProject19(WORK)\\Photos"
-        self.videos_dir = "D:\\PycharmProjects\\pythonProject19(WORK)\\Videos"
+        self.photos_dir = "photos dir"
+        self.videos_dir = "videos dir"
         self.vision_thread = None
         self.telebot_thread = None
-        self.setWindowIcon(QtGui.QIcon('C:\\Users\\quinki\\Downloads\\072934f5-5ac3-44b9-acd0-3611def46442_1.ico'))
+        #self.setWindowIcon(QtGui.QIcon('C:\\Users\\quinki\\Downloads\\072934f5-5ac3-44b9-acd0-3611def46442_1.ico'))  # Unecessary part of code adding icon
         self.initUI()
 
     def show_error_message(self, message):
@@ -51,15 +51,14 @@ class MainApp(QMainWindow):
     def initUI(self):
         self.setWindowTitle("Панель настройки системы")
         self.setGeometry(100, 100, 600, 600)
-        self.setStyleSheet("font-size: 10pt;")  # Установка общего размера шрифта для всех элементов
+        self.setStyleSheet("font-size: 10pt;") 
         layout = QVBoxLayout()
 
         # RTSP stream input
         self.rtsp_input = QLineEdit()
         layout.addWidget(QLabel("RTSP сслыка:"))
         layout.addWidget(self.rtsp_input)
-        self.rtsp_input.setText("rtsp://192.168.1.17/user=ukte&password=Kungey303336&channel=1&stream=0.sdp?")
-       # self.rtsp_input.setText("rtsp://192.168.1.30/user=admin&password=303336&channel=4&stream=0.sdp?")
+        self.rtsp_input.setText("RTSP link")
 
         # Width and Height input
         self.width_input = QLineEdit()
@@ -97,8 +96,8 @@ class MainApp(QMainWindow):
         self.photos_dir_button.clicked.connect(self.select_photos_directory)
         self.photos_dir_display = QLabel(self.photos_dir)
         photo_layout.addWidget(self.photos_dir_label)
-        photo_layout.addWidget(self.photos_dir_button, 1)  # Добавление аргумента stretch
-        photo_layout.addWidget(self.photos_dir_display, 2)  # Добавление аргумента stretch для дополнительного места
+        photo_layout.addWidget(self.photos_dir_button, 1)  
+        photo_layout.addWidget(self.photos_dir_display, 2)  
         layout.addLayout(photo_layout)
 
         # Videos directory selection
@@ -108,15 +107,15 @@ class MainApp(QMainWindow):
         self.videos_dir_button.clicked.connect(self.select_videos_directory)
         self.videos_dir_display = QLabel(self.videos_dir)
         video_layout.addWidget(self.videos_dir_label)
-        video_layout.addWidget(self.videos_dir_button, 1)  # Добавление аргумента stretch
-        video_layout.addWidget(self.videos_dir_display, 2)  # Добавление аргумента stretch для дополнительного места
+        video_layout.addWidget(self.videos_dir_button, 1)  
+        video_layout.addWidget(self.videos_dir_display, 2) 
         layout.addLayout(video_layout)
 
-        layout.addSpacing(30)  # Добавление дополнительного пространства
+        layout.addSpacing(30) 
 
         # Start button
         self.start_button = QPushButton("Запустить")
-        self.start_button.setStyleSheet("font-size: 10pt; QPushButton { height: 50px; }")  # Увеличение кнопки и текста
+        self.start_button.setStyleSheet("font-size: 10pt; QPushButton { height: 50px; }")  
         global is_running
         self.start_button.clicked.connect(self.start_processes)
         layout.addWidget(self.start_button)
@@ -152,15 +151,14 @@ class MainApp(QMainWindow):
         is_running = True
         error = False
 
-        stream_url = self.rtsp_input.text().strip()  # Убираем лишние пробелы
-        # stream_url = "rtsp://192.168.1.30/user=admin&password=303336&channel=3&stream=0.sdp?" if self.rtsp_input.text().strip() == "rtsp://192.168.1.64/user=Admin&password=f696z6$b^1v367&channel=3&stream=0.sdp" else self.rtsp_input.text().strip()
+        stream_url = self.rtsp_input.text().strip()  
         width = self.width_input.text().strip()
         height = self.height_input.text().strip()
         selected_model_key = self.model_dropdown.currentText()
         model_path = self.models.get(selected_model_key, "")
         img_size = self.imgsz_dropdown.currentText().strip()
-        photos_dir_filled = bool(self.photos_dir)  # Проверка, что директория для фото выбрана
-        videos_dir_filled = bool(self.videos_dir)  # Проверка, что директория для видео выбрана
+        photos_dir_filled = bool(self.photos_dir) 
+        videos_dir_filled = bool(self.videos_dir) 
 
         # Проверяем, что все необходимые поля заполнены
         # Проверка заполнения обязательных полей
@@ -183,7 +181,6 @@ class MainApp(QMainWindow):
             QMessageBox.warning(self, "Ошибка конфигурации", "Ни одна из предустановленных директорий не существует!")
             return
 
-        # Преобразуем строки в числа
         width = int(width)
         height = int(height)
 
@@ -201,17 +198,6 @@ class MainApp(QMainWindow):
                     stream_url, width, height, model_path, img_size, self.photos_dir, self.videos_dir, self),
                                             daemon=True)
                 self.vision_thread.start()
-
-                # data_for_start_from_telegram.data = {
-                #     "stream_url": stream_url,
-                #     "width": width,
-                #     "height": height,
-                #     "model_path": model_path,
-                #     "img_size": img_size,
-                #     "photos_dir": self.photos_dir,
-                #     "videos_dir": self.videos_dir,
-                #     "app": self
-                # }
 
             except Exception as e:
                 QMessageBox.critical(self, "Ошибка RTSP. Проверьте ссылку")
