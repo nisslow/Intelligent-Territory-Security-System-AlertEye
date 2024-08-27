@@ -14,7 +14,7 @@ import torch
 
 width = 960
 height = 500
-photos_dir = "your path where to save made photos"
+photos_dir = "your path where to save made photos" # For example D:/PycharmProjects/pythonProject/Photos
 videos_dir = "your path where to save made videos"
 path_alarm = 'your path of the alarm sound'
 our_camera_stream = 'RTSP link'
