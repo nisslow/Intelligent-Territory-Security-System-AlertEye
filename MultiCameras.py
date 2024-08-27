@@ -9,25 +9,30 @@ from threading import Thread
 from collections import deque
 from datetime import datetime, timedelta
 import TelegramBot
-from TelegramBot import start_telebot, send_new_photos, system_is_on_message, system_is_of_message
+from TelegramBot import start_telebot
 import torch
 
 width = 960
 height = 500
-photos_dir = "D:/PycharmProjects/pythonProject19(WORK)/Photos"
-videos_dir = "D:/PycharmProjects/pythonProject19(WORK)/Videos"
-path_alarm = 'D:/PycharmProjects/pythonProject19(WORK)/zvuk-signala-dyimoulovitelya-pojarnaya-trevoga-40205.mp3'
-our_camera_stream = 'rtsp://192.168.1.30/user=admin&password=303336&channel=4&stream=0.sdp?'
-camera_stream = 'rtsp://admin:Admin9540203%25@192.168.1.26:554/avstream/channel=1/stream=0.sdp'
-video_path = 'C:/Users/quinki/Desktop/VID_20240408_124223.mp4'
+photos_dir = "your path"
+videos_dir = "your path"
+path_alarm = 'your path'
+our_camera_stream = 'RTSP link'
+camera_stream = 'RTSP link'
+video_path = 'video_link' # Any video on which you can test the system
 global is_running
 is_running = True
 fourcc = cv2.VideoWriter_fourcc(*'MP4V')
 
-points_dict = {}  # Словарь для хранения точек по индексам потоков
+points_dict = {} 
 count_video, count_photo = 0, 0
 
-def record_video(frame_buffer, time_buffer, delay_buffer, count_video, videos_dir, width, height):
+"""
+This function is recording video from RTSP using created buffer.
+The video frame rate is recorded based on system performance and calculated in 'delay_buffer'.
+By changing the 'duration', you can change the duration of the recorded video.
+"""
+def record_video(frame_buffer, time_buffer, delay_buffer, count_video, videos_dir, width, height): 
     frame_size = (width, height)
     time_now = datetime.now().strftime('%Y_%m_%d_%Hh%Mm%Ss')
     avg_delay = sum(delay_buffer) / len(delay_buffer)
@@ -59,7 +64,7 @@ def record_video(frame_buffer, time_buffer, delay_buffer, count_video, videos_di
     out.release()
     print(f"Запись видео {count_video} завершена")
 
-
+# This function allows you to draw lines on the every camera stream and delete all points
 def draw_polygon(event, x, y, flags, param):
     file_index = param
     if event == cv2.EVENT_LBUTTONUP:
@@ -71,7 +76,7 @@ def draw_polygon(event, x, y, flags, param):
         if file_index in points_dict:
             points_dict[file_index].clear()
 
-
+# Main function
 def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_dir):
     # torch.cuda.set_device(0)
     torch.cuda.empty_cache()
@@ -108,9 +113,6 @@ def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_d
     cv2.resizeWindow(window_name, width, height)
     cv2.setMouseCallback(f'CAMERA{file_index}', draw_polygon, file_index)
 
-    # cv2.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    # cv2.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-
     label_annotator = sv.LabelAnnotator(
         text_scale=0.3,
         text_padding=3,
@@ -119,9 +121,7 @@ def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_d
         thickness=2
     )
 
-
-
-    # system_is_on_message()
+    # system_is_on_message()              # Telegram alerts that the system is up and running
     for result in results:
         if not is_running:
             break
@@ -133,7 +133,7 @@ def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_d
 
         delay_buffer.append(((result.speed.get('preprocess') + result.speed.get('inference') + result.speed.get(
             'postprocess')) / 1000.0))
-        frame = cv2.resize(frame, (width, height))  # (int(1920/2),int(1080/2)))
+        frame = cv2.resize(frame, (width, height))  
         frame_buffer.append(frame.copy())
         time_buffer.append(datetime.now())
         detections = sv.Detections.from_ultralytics(result)
@@ -149,7 +149,7 @@ def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_d
         detections.xyxy[:, 1] = detections.xyxy[:, 1] * (height / orig_height)
         detections.xyxy[:, 3] = detections.xyxy[:, 3] * (height / orig_height)
 
-        # detections = tracker.update_with_detections(detections=detections)
+        # detections = tracker.update_with_detections(detections=detections)         
 
         labels = [f"{result.names[class_id]}: {confidence:.2f}"
                   for class_id, confidence
@@ -171,8 +171,6 @@ def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_d
                 color=sv.Color.GREEN,
                 thickness=2
             )
-
-
 
             trigger = zone.trigger(detections=detections)
 
@@ -217,7 +215,7 @@ def vision(stream, model, imgsz, width, height, file_index, photos_dir, videos_d
             torch.cuda.empty_cache()
             break
 
-    # system_is_of_message()
+    # system_is_of_message()             # Telegram alerts that the system is turned off
     cv2.destroyAllWindows()
 
 
@@ -225,37 +223,24 @@ def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Torch is available: {torch.cuda.is_available()}')
     print(f'Using device: {device}')
-    #'D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10x.pt'
-    models = [YOLO('D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10x.pt').to(device),
-              YOLO('D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10x.pt').to(device),
-              YOLO('D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10x.pt').to(device),
-              # YOLO('D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10x.pt').to(device),
-              # YOLO('D:\\PycharmProjects\\pythonProject19(WORK)\\yolov10\\yolov10x.pt').to(device),
-
-              # YOLO('D:\\PycharmProjects\\pythonProject19(WORK)\\yolov9e.pt').to(device),
+    
+    models = [YOLO('path to model').to(device),
+              YOLO('path to model').to(device),
+              YOLO('path to model').to(device),
               ]
 
-    # window_sizes = [(1280, 720)]
-                    # OLD RTSP :         rtsp://192.168.1.30/user=admin&password=303336&channel=4&stream=0.sdp?"
     streams = [
-        "rtsp://192.168.1.16/user=ukte&password=Kungey303336&channel=1&stream=0.sdp?",
-        'rtsp://192.168.1.16/user=ukte&password=Kungey303336&channel=4&stream=0.sdp?',
-        'rtsp://192.168.1.16/user=ukte&password=Kungey303336&channel=5&stream=0.sdp?',
-        # 'rtsp://192.168.1.16/user=ukte&password=Kungey303336&channel=3&stream=0.sdp?',
-        # 'rtsp://192.168.1.16/user=ukte&password=Kungey303336&channel=2&stream=0.sdp?',
-
-        # 'rtsp://192.168.1.30/user=admin&password=303336&channel=1&stream=0.sdp?'
+        "RTSP link",
+        'RTSP link',
+        'RTSP link',
     ]
-                                        #     1024,
-                                        #     704,
-                                        #     896,
+
     imgszs = [
         1024,
         704,
         1024,
-        # 1024,
-        # 704,
     ]
+    
     threads = [
         threading.Thread(target=vision, args=(streams[i], models[i], imgszs[i], width, height, i+1, photos_dir, videos_dir), daemon=True)
         for i in range(len(streams))
@@ -269,22 +254,7 @@ def main():
     for thread in threads:
         thread.join()
 
-    # tracker_thread1 = threading.Thread(target=vision, args=(streams[0], model1, 1, window_sizes[0]), daemon=True)
-    # tracker_thread2 = threading.Thread(target=vision, args=(streams[1], model2, 2, window_sizes[0]), daemon=True)
-    # bot_thread = threading.Thread(target=start_telebot, daemon=True)
-    #
-    # tracker_thread1.start()
-    # tracker_thread2.start()
-    # bot_thread.start()
-    #
-    # tracker_thread1.join()
-    # tracker_thread2.join()
-    # bot_thread.join()
-
     cv2.destroyAllWindows()
-
-    # Thread(target=start_telebot).start()
-
 
 if __name__ == '__main__':
     main()
