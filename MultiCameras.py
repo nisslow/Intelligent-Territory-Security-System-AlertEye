@@ -235,7 +235,7 @@ def main():
         'RTSP link',
     ]
 
-    imgszs = [
+    imgszs = [   # By default it is 640, but you can change it. Read YOLO doc
         1024,
         704,
         1024,
