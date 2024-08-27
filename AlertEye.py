@@ -20,27 +20,25 @@ yolo_model = ''
 img_size = 0
 videos_dir = ""
 photos_dir = ""
-
-path_alarm = 'D:/PycharmProjects/pythonProject19(WORK)/zvuk-signala-dyimoulovitelya-pojarnaya-trevoga-40205.mp3'
-
-camera_stream = 'rtsp://admin:admin123@192.168.1.15:554/avstream/channel=1/stream=0.sdp'
-video_path = 'C:/Users/quinki/Desktop/VID_20240408_124223.mp4'
+path_alarm = 'path of the alarm sound'
+camera_stream = 'RTSP link'
+video_path = 'video link' # Any video on which you can test the system
 fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-# fps = 10
-
-##
-# frame_size = (width, height)
-
 
 points = []
 
+# You can stop system from telegram
 def stop_processes():
     torch.cuda.empty_cache()
     TelegramBot.system_is_of_message()
     global is_running
     is_running = False
 
-
+"""
+This function is recording video from RTSP using created buffer.
+The video frame rate is recorded based on system performance and calculated in 'delay_buffer'.
+By changing the 'duration', you can change the duration of the recorded video.
+"""   
 def record_video(frame_buffer, time_buffer, delay_buffer, count_video, videos_dir, width, height):
     frame_size = (width, height)
     time_now = datetime.now().strftime('%Y_%m_%d_%Hh%Mm%Ss')
@@ -50,7 +48,7 @@ def record_video(frame_buffer, time_buffer, delay_buffer, count_video, videos_di
     out = cv2.VideoWriter(f'{videos_dir}/{time_now}_output{count_video}.mp4', fourcc, fps_new, frame_size)
     print(f'{time_now}_output{count_video}.mp4')
 
-    duration = 10  # duration of the video in seconds
+    duration = 15  # duration of the video in seconds
     num_frames = int(fps_new * duration)
     frame_interval = 1.0 / fps_new
 
@@ -73,7 +71,7 @@ def record_video(frame_buffer, time_buffer, delay_buffer, count_video, videos_di
     out.release()
     print(f"Запись видео {count_video} завершена")
 
-
+# This function allows you to draw lines on the every camera stream and delete all points
 def draw_polygon(event, x, y, flags, param):
     global points
     if event == cv2.EVENT_LBUTTONUP:
@@ -98,32 +96,27 @@ def vision(stream_url, width, height, model_path, img_size, photos_dir, videos_d
     last_recording_time = 0.0
     last_photo_time = 0.0
     count_video, count_photo = 0, 0
+    # tracker = sv.ByteTrack()
     frame_buffer = deque()
     time_buffer = deque()
     delay_buffer = deque()
-    # frame_buffer = deque(maxlen=int(10 * fps))
-    # classes_to_detect = [0, 2, 7]
     initialized = False
     pygame.init()
     pygame.mixer.music.load(path_alarm)
     try:
-
         model = YOLO(model=model_path, task='detect').to(device)
-        # results = model.predict(source=stream_url, stream=True, imgsz=img_size, agnostic_nms=True, classes=[0, 2, 7])  # classes = [0, 2, 7,14,16]
-        results = model.track(
+        results = model.track( # you can use other mode - predict
             source=stream_url,
             stream=True,
-            persist=True,
+            persist=True,  # needed if you use track mode
             imgsz=img_size,
             agnostic_nms=True,
-            # batch=4,
             classes=[0, 2, 5, 7],
             conf=0.21,
-            tracker="bytetrack.yaml",
+            tracker="bytetrack.yaml", # needed if you use track mode
         )
 
         cv2.namedWindow("AlertEye")
-        # cv2.resizeWindow('camera', 1280, 720)
         cv2.setMouseCallback("AlertEye", draw_polygon)
 
         label_annotator = sv.LabelAnnotator(
@@ -134,7 +127,6 @@ def vision(stream_url, width, height, model_path, img_size, photos_dir, videos_d
             thickness=2
         )
 
-        # tracker = sv.ByteTrack()
         TelegramBot.system_is_on_message()
         for result in results:
             if not is_running:
@@ -145,16 +137,15 @@ def vision(stream_url, width, height, model_path, img_size, photos_dir, videos_d
                 print(orig_width, orig_height)
                 initialized = True
 
-            delay = (result.speed.get('preprocess') + result.speed.get('inference') + result.speed.get('postprocess'))/1000.0
-            delay_buffer.append(delay)
-            # print(delay)
+            delay_buffer.append(((result.speed.get('preprocess') + result.speed.get('inference') + result.speed.get(
+            'postprocess')) / 1000.0))
 
-            frame = cv2.resize(frame, (width, height))  # (int(1920/2),int(1080/2)))
+            frame = cv2.resize(frame, (width, height))  
             frame_buffer.append(frame.copy())
             time_buffer.append(datetime.now())
             detections = sv.Detections.from_ultralytics(result)
 
-            while time_buffer and (datetime.now() - time_buffer[0]).total_seconds() > 10:
+            while time_buffer and (datetime.now() - time_buffer[0]).total_seconds() > 15:  # Duration of the recorded video
                 frame_buffer.popleft()
                 time_buffer.popleft()
                 delay_buffer.popleft()
@@ -237,26 +228,7 @@ def vision(stream_url, width, height, model_path, img_size, photos_dir, videos_d
         app.error_signal.emit(error_message)
         stop_processes()
         torch.cuda.empty_cache()
-        # app.stop_threads_signal.emit()
         cv2.destroyAllWindows()
         # system_is_of_message()
 
     cv2.destroyAllWindows()
-
-
-
-# def main():
-#     # thread1 = Thread(target=vision, daemon=True)
-#     # thread2 = Thread(target=start_telebot, daemon=True)
-#     #
-#     # thread1.start()
-#     # thread2.start()
-#     #
-#     # thread1.join()
-#     # thread2.join()
-#     #
-#     # cv2.destroyAllWindows()
-#
-#
-# if __name__ == '__main__':
-#     main()
