@@ -14,12 +14,12 @@ import torch
 
 width = 960
 height = 500
-photos_dir = "your path"
-videos_dir = "your path"
-path_alarm = 'your path'
+photos_dir = "your path where to save made photos"
+videos_dir = "your path where to save made videos"
+path_alarm = 'your path of the alarm sound'
 our_camera_stream = 'RTSP link'
 camera_stream = 'RTSP link'
-video_path = 'video_link' # Any video on which you can test the system
+video_path = 'video link' # Any video on which you can test the system
 global is_running
 is_running = True
 fourcc = cv2.VideoWriter_fourcc(*'MP4V')
