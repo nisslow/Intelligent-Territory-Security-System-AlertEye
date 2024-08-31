@@ -35,7 +35,7 @@ This system is a complete video surveillance solution using artificial intellige
 - Telegram API (for sending notifications)
 
 ## Configuration
-
+- Install all libraries (Download through terminal in project Pytorch with CUDA fron official web site : https://pytorch.org/get-started/locally/)
 - Configure the directory paths for saving photos and videos in the `photos_dir` and `videos_dir` variables
 - Specify the RTSP streams of the cameras in the `streams` list
 - Download any YOLO family models from the official source. If necessary, change YOLO models or their parameters in the `models` list
